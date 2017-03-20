@@ -22,20 +22,19 @@
 
 #include <stdlib.h>
 
-RF24NetworkCrypt::RF24NetworkCrypt(RF24Network& network, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize) : _network(network), _encrypt(encrypt), _decrypt(decrypt), _blocksize(blocksize){
+RF24NetworkCrypt::RF24NetworkCrypt(RF24Network& network, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize) : _network(network), _encrypt(encrypt), _decrypt(decrypt), _blocksizeByte(blocksize/8){
 
 }
 
 bool RF24NetworkCrypt::write(RF24NetworkHeader& header, const void* message, uint16_t length) {
-	uint16_t blocksizeByte = _blocksize/8;
 	//fill block
-	uint16_t neededLength = blocksizeByte * (((length-1)/blocksizeByte) + 1);
+	uint16_t neededLength = _blocksizeByte * (((length-1)/_blocksizeByte) + 1);
 	void* data = calloc(neededLength,1);
 	memcpy(data, message, length);
-	uint8_t blocks = neededLength/blocksizeByte;
+	uint8_t blocks = neededLength/_blocksizeByte;
 
 	_encrypt(data, blocks);
-	bool ret =  _network.write(header, data, neededLength);
+	bool ret = _network.write(header, data, neededLength);
 
 	free(data);
 
@@ -43,11 +42,10 @@ bool RF24NetworkCrypt::write(RF24NetworkHeader& header, const void* message, uin
 }
 
 uint16_t RF24NetworkCrypt::read(RF24NetworkHeader& header, void* message, uint16_t maxlen) {
-	uint16_t blocksizeByte = _blocksize/8;
-	uint16_t neededLength = blocksizeByte * (((maxlen-1)/blocksizeByte) + 1);
+	uint16_t neededLength = _blocksizeByte * (((maxlen-1)/_blocksizeByte) + 1);
 	void* data = calloc(neededLength,1);
 	_network.read(header, data, neededLength); //TODO: check size received
-	uint8_t blocks = neededLength/blocksizeByte;
+	uint8_t blocks = neededLength/_blocksizeByte;
 
 	_decrypt(data, blocks);
 

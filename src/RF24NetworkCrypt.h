@@ -54,7 +54,7 @@ private:
 	RF24Network& _network;
 	void (*_encrypt)(void*, const uint16_t);
 	void (*_decrypt)(void*, const uint16_t);
-	uint16_t _blocksize;
+	uint16_t _blocksizeByte;
 
 
 };
