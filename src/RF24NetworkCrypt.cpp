@@ -22,8 +22,7 @@
 
 #include <stdlib.h>
 
-RF24NetworkCrypt::RF24NetworkCrypt(RF24Network& network, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize) : _network(network), _encrypt(encrypt), _decrypt(decrypt), _blocksizeByte(blocksize/8){
-
+RF24NetworkCrypt::RF24NetworkCrypt(RF24& radio, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize) : RF24Network(radio), _encrypt(encrypt), _decrypt(decrypt), _blocksizeByte(blocksize/8){
 }
 
 bool RF24NetworkCrypt::write(RF24NetworkHeader& header, const void* message, uint16_t length) {
@@ -34,7 +33,7 @@ bool RF24NetworkCrypt::write(RF24NetworkHeader& header, const void* message, uin
 	uint8_t blocks = neededLength/_blocksizeByte;
 
 	_encrypt(data, blocks);
-	bool ret = _network.write(header, data, neededLength);
+	bool ret = RF24Network::write(header, data, neededLength);
 
 	free(data);
 
@@ -44,7 +43,7 @@ bool RF24NetworkCrypt::write(RF24NetworkHeader& header, const void* message, uin
 uint16_t RF24NetworkCrypt::read(RF24NetworkHeader& header, void* message, uint16_t maxlen) {
 	uint16_t neededLength = _blocksizeByte * (((maxlen-1)/_blocksizeByte) + 1);
 	void* data = calloc(neededLength,1);
-	_network.read(header, data, neededLength); //TODO: check size received
+	RF24Network::read(header, data, neededLength); //TODO: check size received
 	uint8_t blocks = neededLength/_blocksizeByte;
 
 	_decrypt(data, blocks);

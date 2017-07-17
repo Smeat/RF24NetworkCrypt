@@ -20,7 +20,7 @@
 
 #include <RF24Network/RF24Network.h>
 
-class RF24NetworkCrypt {
+class RF24NetworkCrypt : public RF24Network {
 public:
 	/**
 	 *
@@ -29,7 +29,7 @@ public:
 	 * @param decrypt pointer to a function for decryption
 	 * @param blocksize blocksize of the used algorithm in bits
 	 */
-	RF24NetworkCrypt(RF24Network& network, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize);
+	RF24NetworkCrypt(RF24& radio, void (*encrypt)(void*, const uint16_t), void (*decrypt)(void*, const uint16_t), uint16_t blocksize);
 
 	/**
 	 * Send an encrypted message
@@ -38,7 +38,7 @@ public:
 	 * @param length
 	 * @return
 	 */
-	bool write(RF24NetworkHeader& header, const void* message, uint16_t length);
+	virtual bool write(RF24NetworkHeader& header, const void* message, uint16_t length);
 
 	/**
 	 * Read an encrypted message
@@ -47,11 +47,10 @@ public:
 	 * @param length
 	 * @return
 	 */
-	uint16_t read(RF24NetworkHeader& header, void* message, uint16_t length);
+	virtual uint16_t read(RF24NetworkHeader& header, void* message, uint16_t length);
 
 
 private:
-	RF24Network& _network;
 	void (*_encrypt)(void*, const uint16_t);
 	void (*_decrypt)(void*, const uint16_t);
 	uint16_t _blocksizeByte;
